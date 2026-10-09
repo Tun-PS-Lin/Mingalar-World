@@ -76,6 +76,17 @@ export const ui = {
     if (c.onClose) c.onClose();
     return true;
   },
+  /** Fade to black, run `mid` while the screen is dark, then fade back in. */
+  fade(mid, ms = 380) {
+    const f = document.getElementById('fade');
+    if (f.classList.contains('on')) return false;
+    f.classList.add('on');
+    setTimeout(() => {
+      try { mid(); } finally { setTimeout(() => f.classList.remove('on'), 60); }
+    }, ms);
+    return true;
+  },
+
   get panelZone() { return current ? current.zone : null; },
   get panelOpen() { return !!current; },
 };
