@@ -1,12 +1,15 @@
 // Mini golf: three holes played inside the 3D world.
 // Aim with the camera (drag, or A/D), hold Space to charge, release to putt.
 import * as THREE from 'three';
-import { box, cyl, sign, mat, clamp } from './builders.js';
+import { box, cyl, sign, clamp } from './builders.js';
+import { m } from './gfx.js';
 import { ui, h } from './ui.js';
+import { GOLF_OFFSET } from './world.js';
 
 const R = 0.22; // ball radius
 const CUP_R = 0.4;
-const GREEN_Y = 0.09;
+const GREEN_Y = 0.24;
+const OX = GOLF_OFFSET.x, OZ = GOLF_OFFSET.z;
 
 // Lanes run west to east. Obstacles are axis-aligned boxes; `move` slides one along z.
 const HOLES = [
@@ -26,12 +29,18 @@ const HOLES = [
       { x0: 52.2, x1: 53.2, z0: 37.3, z1: 39 },
     ],
   },
-].map((hole) => ({
-  ...hole,
-  bounds: { x0: 36, x1: 58, z0: hole.z - 3, z1: hole.z + 3 },
-  tee: { x: 38.5, z: hole.z },
-  cup: { x: 55.3, z: hole.z },
-}));
+].map((hole) => {
+  // holes are laid out in course coordinates, then moved to the course's spot in town
+  const z = hole.z + OZ;
+  return {
+    ...hole,
+    z,
+    obstacles: hole.obstacles.map((o) => ({ ...o, x0: o.x0 + OX, x1: o.x1 + OX, z0: o.z0 + OZ, z1: o.z1 + OZ })),
+    bounds: { x0: 36 + OX, x1: 58 + OX, z0: z - 3, z1: z + 3 },
+    tee: { x: 38.5 + OX, z },
+    cup: { x: 55.3 + OX, z },
+  };
+});
 
 const SCORE_NAMES = { '-2': 'Eagle!', '-1': 'Birdie!', 0: 'Par', 1: 'Bogey', 2: 'Double bogey' };
 
@@ -54,36 +63,36 @@ export class Golf {
   }
 
   _build(world) {
-    const root = world.root;
+    const root = world.static;
     HOLES.forEach((hole, i) => {
       const b = hole.bounds;
       const w = b.x1 - b.x0, d = b.z1 - b.z0, cx = (b.x0 + b.x1) / 2;
-      const green = box(root, w, 0.1, d, cx, GREEN_Y - 0.1, hole.z, 0x35b558);
+      const green = box(root, w, 0.1, d, cx, GREEN_Y - 0.1, hole.z, m('grass', 0x35b558));
       green.castShadow = false;
       // rails
-      box(root, w + 0.6, 0.34, 0.3, cx, 0, b.z0 - 0.15, 0xffffff);
-      box(root, w + 0.6, 0.34, 0.3, cx, 0, b.z1 + 0.15, 0xffffff);
-      box(root, 0.3, 0.34, d, b.x0 - 0.15, 0, hole.z, 0xffffff);
-      box(root, 0.3, 0.34, d, b.x1 + 0.15, 0, hole.z, 0xffffff);
+      box(root, w + 0.6, 0.34, 0.3, cx, 0.15, b.z0 - 0.15, 0xffffff);
+      box(root, w + 0.6, 0.34, 0.3, cx, 0.15, b.z1 + 0.15, 0xffffff);
+      box(root, 0.3, 0.34, d, b.x0 - 0.15, 0.15, hole.z, 0xffffff);
+      box(root, 0.3, 0.34, d, b.x1 + 0.15, 0.15, hole.z, 0xffffff);
       // tee mat, cup, flag
       const tee = box(root, 1.2, 0.02, 1.2, hole.tee.x, GREEN_Y, hole.z, 0x1f7a3b);
       tee.castShadow = false;
-      const cup = cyl(root, CUP_R, 0.02, hole.cup.x, GREEN_Y, hole.z, new THREE.MeshBasicMaterial({ color: 0x0b0d14 }), 20);
+      const cup = cyl(root, CUP_R, 0.02, hole.cup.x, GREEN_Y, hole.z, m(0x0b0d14), 20);
       cup.castShadow = false;
       cyl(root, 0.04, 2.2, hole.cup.x, GREEN_Y, hole.z, 0xffffff, 6);
       box(root, 0.8, 0.5, 0.04, hole.cup.x + 0.42, 1.75, hole.z, 0xe2483d);
       sign(root, String(i + 1), 0.9, 0.9, b.x0 - 0.9, 1.3, hole.z - 2.2, -Math.PI / 2, { bg: '#ffc83d', fg: '#2a1d00', doubleSided: true });
       cyl(root, 0.06, 0.9, b.x0 - 0.9, 0, hole.z - 2.2, 0x555b66, 6);
       for (const o of hole.obstacles) {
-        o.mesh = box(root, o.x1 - o.x0, 0.55, o.z1 - o.z0, (o.x0 + o.x1) / 2, GREEN_Y, (o.z0 + o.z1) / 2, o.move ? 0x8e5bd6 : 0xff7a3d);
+        o.mesh = box(o.move ? world.dyn : root, o.x1 - o.x0, 0.55, o.z1 - o.z0, (o.x0 + o.x1) / 2, GREEN_Y, (o.z0 + o.z1) / 2, o.move ? 0x8e5bd6 : 0xff7a3d);
         if (o.move) { o.base = (o.z0 + o.z1) / 2; o.half = (o.z1 - o.z0) / 2; }
       }
     });
 
-    this.ball = new THREE.Mesh(new THREE.SphereGeometry(R, 16, 12), mat(0xffffff));
+    this.ball = new THREE.Mesh(new THREE.SphereGeometry(R, 16, 12), m('smooth', 0xffffff));
     this.ball.castShadow = true;
     this.ball.visible = false;
-    root.add(this.ball);
+    world.dyn.add(this.ball);
 
     // aim arrow
     this.arrow = new THREE.Group();
@@ -92,7 +101,7 @@ export class Golf {
     this.shaft = box(this.arrow, 0.12, 0.02, 1, 0, 0, 0.5, am);
     this.tip = box(this.arrow, 0.4, 0.02, 0.4, 0, 0, 0, am);
     this.tip.rotation.y = Math.PI / 4;
-    root.add(this.arrow);
+    world.dyn.add(this.arrow);
 
     // moving obstacles keep moving even when nobody is playing
     world.updaters.push((dt, t) => {
@@ -149,7 +158,7 @@ export class Golf {
     g.cam.pitch = this.saved.pitch;
     g.player.putter.visible = false;
     g.player.pose = null;
-    g.player.teleport(34, 0, 26, Math.PI / 2);
+    g.player.teleport(34 + OX, 0.2, 26 + OZ, Math.PI / 2);
     this.ball.visible = false;
     this.arrow.visible = false;
     ui.hud(null); ui.hint(null); ui.power(null);
@@ -185,7 +194,7 @@ export class Golf {
       ui.power(this.charging ? this.power : 0);
 
       // stand beside the ball, facing it
-      g.player.pos.set(ball.x - rx * 0.95 - fx * 0.1, 0, ball.z - rz * 0.95 - fz * 0.1);
+      g.player.pos.set(ball.x - rx * 0.95 - fx * 0.1, GREEN_Y - 0.05, ball.z - rz * 0.95 - fz * 0.1);
       g.player.heading = Math.atan2(rx, rz);
       g.player.group.rotation.y = g.player.heading;
 

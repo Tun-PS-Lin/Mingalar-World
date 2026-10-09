@@ -1,47 +1,5 @@
-// Lighter interactions: garage showroom, home gallery, office reception.
-// All copy is placeholder content.
+// Lighter interactions: home gallery and office reception. Placeholder copy.
 import { ui, h } from './ui.js';
-
-// ------------------------------------------------------------------ garage
-const PAINTS = [0xe2483d, 0x2e6fdb, 0xffc83d, 0x23262f, 0xf4f1ea, 0x2fa37a, 0x8e5bd6, 0xff7a3d];
-const hex = (n) => '#' + n.toString(16).padStart(6, '0');
-
-export function openGarage(world, zone) {
-  const cars = world.refs.cars;
-  const g = world.refs.garage;
-  const body = h('');
-  const render = () => {
-    const c = cars[g.selected];
-    const cur = c.bodyMat.color.getHex();
-    body.innerHTML = `
-      <div class="row spread" style="margin-bottom:6px">
-        <button class="btn ghost small" data-step="-1">◀ Prev</button>
-        <span class="label">${g.selected + 1} of ${cars.length}</span>
-        <button class="btn ghost small" data-step="1">Next ▶</button>
-      </div>
-      <h3 style="font-size:24px;margin:10px 0 0">${c.name}</h3>
-      <div class="specs">
-        <div class="spec"><b>${c.top}</b><span>Top speed</span></div>
-        <div class="spec"><b>${c.zero}</b><span>0–100</span></div>
-        <div class="spec"><b>${c.range}</b><span>Range</span></div>
-      </div>
-      <div class="label">Paint</div>
-      <div class="swatches">${PAINTS.map((p) => `<button class="swatch ${p === cur ? 'on' : ''}" data-paint="${p}" style="background:${hex(p)}" aria-label="Paint ${hex(p)}"></button>`).join('')}</div>
-      <p>The selected car spins on its turntable. Pick a colour and watch it repaint live in the showroom.</p>
-      <div class="note">Placeholder models and figures.</div>`;
-  };
-  body.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    if (b.dataset.step) g.selected = (g.selected + +b.dataset.step + cars.length) % cars.length;
-    else if (b.dataset.paint) cars[g.selected].bodyMat.color.setHex(+b.dataset.paint);
-    else return;
-    render();
-  });
-  render();
-  g.panelOpen = true;
-  ui.openPanel({ kicker: 'Virtual Garage', title: 'Showroom', body, zone, onClose: () => { g.panelOpen = false; } });
-}
 
 // ------------------------------------------------------------ home gallery
 const ROOMS = [
@@ -82,23 +40,13 @@ export function openHome(world, zone) {
   ui.openPanel({ kicker: 'Luxury Home', title: 'Gallery tour', body, zone });
 }
 
-// ------------------------------------------------------------------ office
-export function openOffice(zone) {
+// ------------------------------------------------------- office reception
+export function openReception(zone) {
   const body = h(`
-    <p>Welcome to reception. This is where visitors learn who you are and how to reach you.</p>
-    <div class="service"><b>Consulting</b><span>Short description of your first service.</span></div>
-    <div class="service"><b>Virtual tours</b><span>Short description of your second service.</span></div>
-    <div class="service"><b>Partnerships</b><span>Short description of your third service.</span></div>
-    <div class="label" style="margin:16px 0 8px">Leave a message</div>
-    <input class="field" name="name" placeholder="Your name" autocomplete="off" />
-    <textarea class="field" name="msg" rows="3" placeholder="How can we help?"></textarea>
-    <button class="btn wide" data-send>Send</button>
-    <div class="note">Demo form. Nothing is sent or stored.</div>`);
-  body.addEventListener('click', (e) => {
-    if (!e.target.closest('[data-send]')) return;
-    const name = body.querySelector('[name=name]').value.trim();
-    ui.toast(name ? `Thanks, ${name}! (demo, nothing was sent)` : 'Add your name first');
-    if (name) { body.querySelector('[name=msg]').value = ''; }
-  });
+    <p>Welcome to the Virtual Office! Three teams work on this floor:</p>
+    <div class="service"><b>🗺️ Alacrity Research</b><span>North-west corner. Walk up to the holographic city table.</span></div>
+    <div class="service"><b>📺 Mingalar News</b><span>North-east corner. The studio with the video wall.</span></div>
+    <div class="service"><b>💻 Tun-PS-Lin</b><span>South-east corner. The developer desk with the contribution wall.</span></div>
+    <p style="margin-top:10px">Press <kbd>E</kbd> near each one to visit their site. The exit is right behind you.</p>`);
   ui.openPanel({ kicker: 'Virtual Office', title: 'Reception', body, zone });
 }

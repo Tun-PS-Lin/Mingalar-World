@@ -1,31 +1,30 @@
-# Virtual Luxury Home
+# Mingalar World
 
-A small explorable 3D town in the browser. Walk a blocky character around, approach buildings and interact with them.
+An explorable 3D town in the browser, styled after Roblox: smooth plastic parts, bright colours, blocky avatars. Walk (or look through your avatar's eyes), customise your character, shop the Virtual Mall, mod a car and race it around the city, visit the Virtual Office and test your aim at the Gun Range.
 
-Built with [Three.js](https://threejs.org) and [Vite](https://vite.dev). No 3D model files: everything is generated from boxes and cylinders in code, so the whole site is about 150 kB gzipped.
+Built with [Three.js](https://threejs.org) and [Vite](https://vite.dev). There are no model or texture files: every building, car, product and texture is generated in code, so the whole site is about 220 kB gzipped.
 
 ## Run it locally
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5173  (add ?debug for an FPS / draw-call readout)
 ```
 
-## Deploy to Vercel
+## Test it
 
-Option A, from GitHub (recommended):
+```bash
+npm run build
+npm test           # headless smoke + performance test, screenshots in tests/out/
+```
+
+The test serves `dist/`, drives every area in headless Chromium (mall, garage mods, a full race lap, office corners and links, gun range, customiser, first person, minimap) and fails on any console error, more than 400 draw calls, more than 3 M triangles or more than 4 ms of simulation per frame. It uses the Chromium that ships with Playwright; set `CHROME=/path/to/chrome` to use another one.
+
+## Deploy to Vercel
 
 1. Push this folder to a GitHub repository.
 2. On vercel.com choose **Add New → Project** and import the repository.
 3. Vercel detects Vite automatically (build command `npm run build`, output `dist`). Click **Deploy**.
-
-Option B, from your terminal:
-
-```bash
-npm i -g vercel
-vercel          # preview deployment
-vercel --prod   # production
-```
 
 ## Controls
 
@@ -34,48 +33,67 @@ vercel --prod   # production
 | Move | W A S D / arrows | Left thumb (floating joystick) |
 | Run | Shift | Run button (toggle) |
 | Jump | Space | Jump button |
-| Look | Drag the mouse | Drag anywhere else |
+| Look | Drag the mouse (third person) · mouse (first person, pointer lock) | Drag anywhere else |
 | Zoom | Scroll wheel | Pinch |
 | Interact | E | Tap the prompt |
+| First / third person | V or the 🎥 button (top right) | 🎥 button |
+| Customise avatar | C or the 👕 button (top right) | 👕 button |
+| Minimap | M or the – button | – button |
 | Close / leave | Esc | ✕ or Leave |
+
+Your avatar always faces where the camera looks, in both views. In third person, drag to swing the camera around; in first person, click the scene to capture the mouse.
 
 ## What you can do
 
 | Place | Interaction |
 |---|---|
-| Mini Golf | Three playable holes. Aim with the camera (or A/D), hold Space to charge, release to putt. Scorecard at the end. |
-| Virtual Mall | Walk inside, visit the four kiosks, add items to a cart, demo checkout. |
-| Virtual Garage | Doors open as you approach. Cycle the cars and repaint them live. |
-| Luxury Home Gallery | Room-by-room tour, and switch the house lights on. |
-| Virtual Office | Reception panel with services and a demo contact form. |
-| Gym | Jumping-jack workout with a rep counter. |
-| Pool | Walk in and swim. |
+| Virtual Mall | A big walk-in hall with a **Tech** floor (laptops, phones, tablets, cameras, speakers, headphones, TVs, desktops, gaming, drones) and a **Fashion** floor (tees, hoodies, jackets, jeans, dresses, skirts, handbags, shoes, hats, sunglasses, backpacks, mannequins, fitting rooms). Press E at any display to browse it, add to the cart, or try clothes on your avatar. |
+| Virtual Garage | Five cars on turntables. Press E at a car to change paint, finish, wheels, rim colour, spoiler, body kit, underglow, stripes, window tint, engine, tyres and nitro, then **Race this car**. |
+| Mingalar Raceway | A circuit around the outside of the city. Three laps against three AI rivals, with lap times, best laps (saved), chase and cockpit cameras (V), handbrake drifts (Space) and nitro (Shift). |
+| Virtual Office | Press E at the door to go inside. Three business corners: Alacrity Research's holographic city map (→ map.alacrityresearch.xyz), the Mingalar News studio (→ mingalar.news) and a developer desk (→ github.com/Tun-PS-Lin). |
+| Gun Range | Pick a pistol, revolver, SMG, assault rifle, shotgun or sniper rifle and score as many points as you can in 60 seconds on pop-up dummies and bullseye boards. R reloads, right-click / Q scopes the sniper. |
+| Luxury Home | Room-by-room gallery tour, and switch the house lights on. Pool in the back garden: walk in to swim. |
+| Mini Golf · Gym | Three holes of mini golf; jumping jacks on the gym mat. |
 
 ## Project layout
 
 ```
-index.html        HUD markup (prompt, panel, touch buttons, start screen)
-src/main.js       Renderer, lights, camera rig, game loop, interaction wiring
-src/world.js      Town layout: roads, buildings, props, colliders, interaction zones
-src/player.js     Character model, movement, collision, procedural animation
-src/controls.js   Keyboard, mouse and touch input
-src/golf.js       Mini golf (holes are defined in the HOLES array at the top)
-src/mall.js       Mall catalogue (CATALOG) and cart
-src/panels.js     Garage, home gallery and office panels
-src/ui.js         DOM overlay helpers
+index.html        HUD markup (top-right buttons, minimap, prompt, panel, touch buttons, start screen)
+src/main.js       Renderer, lights, camera rig (first/third person), game loop, interaction wiring
+src/gfx.js        Material library + procedural textures, sky, clouds, static batching
+src/kit.js        World container (colliders, zones, map shapes) and props: trees, lamps, benches...
+src/world.js      City layout: blocks, roads, wall, home, pool, gym, golf course, parks
+src/avatar.js     Roblox-style avatar builder (body, face, hair, clothes, accessories)
+src/customize.js  Avatar editor panel
+src/player.js     Movement, collision and animation
+src/controls.js   Keyboard, mouse, pointer lock and touch input
+src/minimap.js    Minimap
+src/mall.js       Mall building, displays and catalogue (DISPLAYS), cart
+src/products.js   3D product models (clothes, bags, shoes, laptops, cameras, speakers...)
+src/garage.js     Garage showroom, workshop, parking, mod panel
+src/cars.js       Car models (MODELS) and mods
+src/race.js       Race track, driving physics, AI rivals, lap timing, race cameras
+src/office.js     Office tower, interior and the three business corners (LINKS)
+src/gunrange.js   Gun range building, weapons (WEAPONS), targets and shooting
+src/golf.js       Mini golf
+src/panels.js     Home gallery and office reception panels
+src/ui.js         DOM overlay helpers (panel, toasts, prompt, fade)
 src/builders.js   box / cylinder / sign helpers
-src/style.css     All UI styling
+tests/smoke.mjs   Headless smoke + performance test
 ```
 
-## Replacing the placeholder content
+## Editing content
 
-- **Shop products**: edit `CATALOG` in `src/mall.js`.
-- **Cars**: edit `defs` in the garage section of `src/world.js`.
-- **Gallery rooms**: edit `ROOMS` in `src/panels.js`.
-- **Office text and form**: edit `openOffice` in `src/panels.js`. The form does not send anything yet.
-- **Building names**: search for `sign(` in `src/world.js`.
+- **Shop products**: `DISPLAYS` in `src/mall.js`; the 3D displays are built further down the same file.
+- **Cars**: `MODELS` in `src/cars.js`; showroom line-up in `LINEUP` in `src/garage.js`.
+- **Office links**: `LINKS` in `src/office.js`.
+- **Weapons**: `WEAPONS` in `src/gunrange.js`.
+- **Avatar options**: `OPTIONS` and the colour lists in `src/avatar.js`.
+- **Sound effects**: every sound-worthy moment calls `game.sfx(name)` (`jump`, `buy`, `checkout`, `shot:<weapon>`, `hit`, `bump`). It is a no-op today; plug an audio player in there.
 
-## Adding a new interactive building
+## Performance notes
 
-1. In `src/world.js`, build it with `block(...)` (visible box + collider) and add `zone('myId', x, z, radius, 'Prompt text')`.
-2. In `src/main.js`, add `myId: (z) => { ... }` to `ACTIONS`.
+- Static parts are merged into a few big meshes at load (`bakeStatic` in `src/gfx.js`). Plain-coloured materials of the same kind share one material with the colour stored per vertex, so hundreds of colours cost one draw call.
+- Trees, bushes and flowers are instanced.
+- Textures are drawn on canvases and mapped in world space, so a brick wall and a planter share the same texture without stretching.
+- The renderer caps the pixel ratio at 1.75 (1.5 on touch); add `?dpr=1` to the URL on slow machines.
