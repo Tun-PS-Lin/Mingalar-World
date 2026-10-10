@@ -1,0 +1,47 @@
+{
+  "name": "MingalarWorld",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": { "$path": "src/shared" }
+    },
+    "ServerScriptService": {
+      "Server": { "$path": "src/server" }
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CameraMaxZoomDistance": 60,
+        "CameraMinZoomDistance": 0.5,
+        "CharacterWalkSpeed": 18,
+        "CharacterJumpPower": 50
+      },
+      "StarterPlayerScripts": {
+        "Client": { "$path": "src/client" }
+      }
+    },
+    "Workspace": {
+      "Map": { "$path": "build/Map.rbxm" },
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingTargetRadius": 1024,
+        "StreamingMinRadius": 256,
+        "Gravity": 196.2
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Technology": "Future",
+        "Brightness": 2.6,
+        "ClockTime": 14.2,
+        "GeographicLatitude": 35,
+        "Ambient": [0.36, 0.38, 0.42],
+        "OutdoorAmbient": [0.55, 0.57, 0.6],
+        "EnvironmentDiffuseScale": 0.6,
+        "EnvironmentSpecularScale": 0.6,
+        "ShadowSoftness": 0.25,
+        "GlobalShadows": true
+      }
+    },
+    "SoundService": { "$properties": { "RespectFilteringEnabled": true } }
+  }
+}

@@ -97,3 +97,7 @@ tests/smoke.mjs   Headless smoke + performance test
 - Trees, bushes and flowers are instanced.
 - Textures are drawn on canvases and mapped in world space, so a brick wall and a planter share the same texture without stretching.
 - The renderer caps the pixel ratio at 1.75 (1.5 on touch); add `?dpr=1` to the URL on slow machines.
+
+## Roblox version
+
+A full Roblox port lives in [`roblox/`](roblox/README.md). Open `roblox/MingalarWorld.rbxl` in Roblox Studio and press Play.
